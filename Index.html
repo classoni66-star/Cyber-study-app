@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cyber Study Companion</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #238636;
+            --accent-hover: #2ea043;
+            --border: #30363d;
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; line-height: 1.5; }
+        h1, h2 { text-align: center; color: #ffffff; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        
+        /* Timer Styles */
+        .timer-display { font-size: 3rem; font-weight: bold; text-align: center; margin: 10px 0; color: #58a6ff; }
+        .btn-group { display: flex; justify-content: center; gap: 10px; }
+        button { background-color: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: var(--accent-hover); }
+        button:disabled { background-color: var(--border); color: var(--text-muted); cursor: not-allowed; }
+        
+        /* Progress Styles */
+        .progress-item { display: flex; align-items: center; margin-bottom: 10px; padding: 8px; border-bottom: 1px solid var(--border); }
+        .progress-item input[type="checkbox"] { width: 20px; height: 20px; margin-right: 15px; cursor: pointer; }
+        .progress-item label { font-size: 1rem; cursor: pointer; }
+        
+        /* Flashcard Styles */
+        .flashcard { background-color: #21262d; border-radius: 8px; padding: 20px; min-height: 120px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; font-size: 1.1rem; margin-bottom: 15px; border: 1px solid var(--border); transition: transform 0.3s; }
+        .flashcard:active { transform: scale(0.98); }
+        .flashcard-actions { display: flex; gap: 10px; justify-content: space-between; }
+        .flashcard-actions button { flex: 1; background-color: #21262d; border: 1px solid var(--border); }
+        .flashcard-actions button:hover { background-color: #30363d; }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🛡️ Cyber Study Companion</h1>
+
+    <!-- POMODORO TIMER -->
+    <div class="card">
+        <h2>Focus Timer</h2>
+        <div class="timer-display" id="timer">25:00</div>
+        <div class="btn-group">
+            <button id="startBtn" onclick="toggleTimer()">Start</button>
+            <button id="resetBtn" onclick="resetTimer()">Reset</button>
+        </div>
+    </div>
+
+    <!-- PROGRESS TRACKER -->
+    <div class="card">
+        <h2>Course Progress</h2>
+        <div id="progressList">
+            <!-- Items will be generated here via JS -->
+        </div>
+    </div>
+
+    <!-- FLASHCARDS -->
+    <div class="card">
+        <h2>Flashcards (Tap to flip)</h2>
+        <div class="flashcard" id="flashcard" onclick="flipCard()">
+            Tap to reveal definition
+        </div>
+        <div class="flashcard-actions">
+            <button onclick="nextCard()">Next Card ➡️</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. POMODORO TIMER LOGIC ---
+    let timeLeft = 25 * 60; // 25 minutes in seconds
+    let timerId = null;
+    let isRunning = false;
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').innerText = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('startBtn');
+        if (isRunning) {
+            clearInterval(timerId);
+            btn.innerText = 'Start';
+        } else {
+            if (timeLeft === 0) resetTimer();
+            btn.innerText = 'Pause';
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    isRunning = false;
+                    btn.innerText = 'Start';
+                    alert("Time's up! Take a 5-minute break.");
+                }
+            }, 1000);
+        }
+        isRunning = !isRunning;
+    }
+
+    function resetTimer() {
+        clearInterval(timerId);
+        isRunning = false;
+        timeLeft = 25 * 60;
+        document.getElementById('startBtn').innerText = 'Start';
+        updateTimerDisplay();
+    }
+
+    // --- 2. PROGRESS TRACKER LOGIC ---
+    const modules = [
+        "1. Governance, Risk & Data Privacy",
+        "2. Vulnerability Management",
+        "3. System & Network Security",
+        "4. Cloud Security",
+        "5. Security Operations",
+        "6. Incident Response & Forensics",
+        "Final Capstone Project"
+    ];
+
+    function loadProgress() {
+        const container = document.getElementById('progressList');
+        const savedProgress = JSON.parse(localStorage.getItem('studyProgress')) || {};
+
+        modules.forEach((mod, index) => {
+            const isChecked = savedProgress[index] ? "checked" : "";
+            const div = document.createElement('div');
+            div.className = 'progress-item';
+            div.innerHTML = `
+                <input type="checkbox" id="mod${index}" ${isChecked} onchange="saveProgress(${index}, this.checked)">
+                <label for="mod${index}">${mod}</label>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function saveProgress(index, isChecked) {
+        let savedProgress = JSON.parse(localStorage.getItem('studyProgress')) || {};
+        savedProgress[index] = isChecked;
+        localStorage.setItem('studyProgress', JSON.stringify(savedProgress));
+    }
+
+    // --- 3. FLASHCARD LOGIC ---
+    // You can add more of these based on the IBM Glossary!
+    const flashcards = [
+        { term: "Phishing", definition: "The fraudulent practice of sending emails purporting to be from reputable companies to induce individuals to reveal personal information." },
+        { term: "Ransomware", definition: "A type of malicious software designed to block access to a computer system until a sum of money is paid." },
+        { term: "MFA (Multi-Factor Authentication)", definition: "An authentication method that requires the user to provide two or more verification factors to gain access to a resource." },
+        { term: "Zero-Day Exploit", definition: "A cyber attack that occurs on the same day a weakness is discovered in software. It is exploited before a fix becomes available." },
+        { term: "SOC (Security Operations Center)", definition: "A centralized unit that deals with security issues on an organizational and technical level." }
+    ];
+
+    let currentCardIndex = 0;
+    let isFlipped = false;
+
+    function showCard() {
+        const cardElement = document.getElementById('flashcard');
+        const card = flashcards[currentCardIndex];
+        isFlipped = false;
+        cardElement.innerText = card.term;
+        cardElement.style.color = "#58a6ff"; // Blue for term
+    }
+
+    function flipCard() {
+        const cardElement = document.getElementById('flashcard');
+        const card = flashcards[currentCardIndex];
+        
+        if (!isFlipped) {
+            cardElement.innerText = card.definition;
+            cardElement.style.color = "#c9d1d9"; // White for definition
+            isFlipped = true;
+        } else {
+            cardElement.innerText = card.term;
+            cardElement.style.color = "#58a6ff";
+            isFlipped = false;
+        }
+    }
+
+    function nextCard() {
+        currentCardIndex = (currentCardIndex + 1) % flashcards.length;
+        showCard();
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = () => {
+        updateTimerDisplay();
+        loadProgress();
+        showCard();
+    };
+</script>
+</body>
+  </html>
