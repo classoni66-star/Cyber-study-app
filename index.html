@@ -23,7 +23,7 @@
         /* Timer Styles */
         .timer-display { font-size: 3rem; font-weight: bold; text-align: center; margin: 10px 0; color: #58a6ff; }
         .btn-group { display: flex; justify-content: center; gap: 10px; }
-        button { background-color: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button { background-color: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 5px; font-size: 0.95rem; cursor: pointer; transition: 0.2s; font-weight: bold; }
         button:hover { background-color: var(--accent-hover); }
         
         /* Progress Styles */
@@ -35,8 +35,10 @@
         .card-counter { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px; }
         .flashcard { background-color: #21262d; border-radius: 8px; padding: 20px; min-height: 150px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; font-size: 1.1rem; margin-bottom: 15px; border: 1px solid var(--border); transition: transform 0.2s; }
         .flashcard:active { transform: scale(0.97); }
-        .flashcard-actions { display: flex; gap: 10px; justify-content: space-between; }
-        .flashcard-actions button { flex: 1; background-color: #21262d; border: 1px solid var(--border); }
+        
+        /* Adjusted Flex Layout for 3 Buttons */
+        .flashcard-actions { display: flex; gap: 6px; justify-content: space-between; }
+        .flashcard-actions button { flex: 1; background-color: #21262d; border: 1px solid var(--border); padding: 10px 5px; font-size: 0.85rem; }
         .flashcard-actions button:hover { background-color: #30363d; }
     </style>
 </head>
@@ -71,8 +73,9 @@
             Tap to reveal definition
         </div>
         <div class="flashcard-actions">
-            <button onclick="shuffleCards()" style="flex: 0.5;">🔀 Shuffle</button>
-            <button onclick="nextCard()">Next Card ➡️</button>
+            <button onclick="prevCard()">⬅️ Prev</button>
+            <button onclick="shuffleCards()" style="flex: 0.8;">🔀 Mix</button>
+            <button onclick="nextCard()">Next ➡️</button>
         </div>
     </div>
 </div>
@@ -160,7 +163,7 @@
         localStorage.setItem('studyProgress', JSON.stringify(savedProgress));
     }
 
-    // --- 3. FLASHCARD LOGIC (MODULES 1-5 EXTRACTED FROM PDF) ---
+    // --- 3. FLASHCARD LOGIC (MODULES 1-5) ---
     const flashcards = [
         // Module 1
         { term: "Administrative controls", definition: "Guidelines, policies, and procedures written to meet and enforce security goals." },
@@ -377,6 +380,12 @@
         showCard();
     }
 
+    function prevCard() {
+        // Add length before modulo to handle negative numbers correctly
+        currentCardIndex = (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+        showCard();
+    }
+
     function shuffleCards() {
         // Fisher-Yates Shuffle algorithm
         for (let i = flashcards.length - 1; i > 0; i--) {
@@ -395,4 +404,4 @@
     };
 </script>
 </body>
-    </html>
+</html>
